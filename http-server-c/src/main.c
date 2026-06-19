@@ -88,6 +88,9 @@ int main() {
 	 if(strcmp(request_target, "/")==0){
 	 	char *res = "HTTP/1.1 200 OK\r\n\r\n";
 	 	send(client_fd, res , strlen(res), 0);
+	 }else if(strcmp(request_target, "/echo/abc")==0){
+	 	char *res = "HTTP/1.1 200 OK\r\nContent-Type: text/palin\r\nContent-lenght: 3 \r\n\r\nabc";
+	 	send(client_fd, res , strlen(res), 0);
 	 }else{
 	 	char *res = "HTTP/1.1 404 Not Found\r\n\r\n";
 	 	send(client_fd, res , strlen(res), 0);
