@@ -103,18 +103,7 @@ int main() {
 
 	sscanf(request_buffer, "%s %s", request_method, request_target);
 
-	printf("reuest buffer:%s/n request target%s/n", request_method, request_target);
-
-	if(strcmp(request_target, "/")==0){
-		char *res = "HTTP/1.1 200 OK\r\n\r\n";
-		send(client_fd, res , strlen(res), 0);
-	}else if(strcmp(request_target, "/echo/abc")==0){
-		char *res = "HTTP/1.1 200 OK\r\nContent-Type: text/palin\r\nContent-lenght: 3 \r\n\r\nabc";
-		send(client_fd, res , strlen(res), 0);
-	}else{
-		char *res = "HTTP/1.1 404 Not Found\r\n\r\n";
-		send(client_fd, res , strlen(res), 0);
-	}
+	// printf("reuest buffer:%s\n request target%s\n", request_method, request_target);
 
 	enum Route route = get_route_id(request_target);
 
@@ -126,10 +115,33 @@ int main() {
 		}
 
 		case ROUTE_ECHO: {
-		char *res = "HTTP/1.1 200 OK\r\nContent-Type: text/palin\r\nContent-lenght: 3 \r\n\r\nabc";
+		char *res = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-length: 3 \r\n\r\nabc";
 		send(client_fd, res , strlen(res), 0);
 		break;
 		}
+
+		case ROUTE_USER_AGENT: {
+			char *user_agent_start = strstr(request_buffer, "User-Agent: ");
+			if (user_agent_start != NULL) {
+				char user_agent_value[512];
+				sscanf(user_agent_start + 12, "%[^\r\n]", user_agent_value);
+				
+				int body_length = strlen(user_agent_value);
+				char response_header[1024];
+
+				int responce_size = sprintf(response_header,
+					"HTTP/1.1 200 OK\r\n\r\n"
+					"Content-Type: text/plain\r\n"
+					"Content-length: %d\r\n"
+					"%s",
+					body_length, user_agent_value
+				);
+
+			send(client_fd, response_header, responce_size, 0);
+			}
+			break;
+		}
+
 		case ROUTE_NOT_FOUND:
 		default: {
 		char *res = "HTTP/1.1 404 Not Found\r\n\r\n";
